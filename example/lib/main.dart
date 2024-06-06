@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:dynamic_theme_generator/dynamic_theme_generator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,14 +14,21 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+      create: (context) => ThemeProvider(
+        themeManager: ThemeManager(customTheme: CUSTOMTHEMES.coffeeDark),
+      ),
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
-            theme: themeProvider.themeManager.currentTheme?.toThemeData(),
+            theme: themeProvider.themeManager.lightMode,
+            darkTheme: themeProvider.themeManager.darkMode,
+            themeMode: themeProvider.themeManager.themeMode,
             home: HomeScreen(
-              updateTheme: (newTheme) =>
-                  themeProvider.updateTheme(newTheme: newTheme),
+              brightness: themeProvider.themeManager.themeMode.toString(),
+              updateTheme: (newTheme) {
+                themeProvider.updateTheme(newTheme: newTheme);
+              },
+              toggleBrightness: themeProvider.toggleBrightness,
             ),
           );
         },
@@ -35,31 +40,85 @@ class MyApp extends StatelessWidget {
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
     super.key,
+    required this.toggleBrightness,
     required this.updateTheme,
+    required this.brightness,
   });
 
-  final void Function(ThemeModel newTheme) updateTheme;
+  final void Function() toggleBrightness;
+  final void Function(ThemeData newTheme) updateTheme;
+  final String brightness;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: const Text('Dynamic Theme Example')),
       body: Center(
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.secondary,
-          ),
-          onPressed: () {
-            final newTheme = ThemeModel(
-              primaryColor:
-                  Colors.primaries[Random().nextInt(Colors.primaries.length)],
-              secondaryColor:
-                  Colors.primaries[Random().nextInt(Colors.primaries.length)],
-            );
+        child: Column(
+          children: [
+            CusContainer(
+              color: colorScheme.primaryContainer,
+              text: "Primary",
+              textColor: colorScheme.primary,
+            ),
+            const SizedBox(height: 20),
+            CusContainer(
+              color: colorScheme.secondaryContainer,
+              text: "secondary",
+              textColor: colorScheme.secondary,
+            ),
+            const SizedBox(height: 20),
+            CusContainer(
+              color: colorScheme.tertiaryContainer,
+              text: "tertiary",
+              textColor: colorScheme.tertiary,
+            ),
+            const SizedBox(height: 20),
+            CusContainer(
+              color: colorScheme.errorContainer,
+              text: "error",
+              textColor: colorScheme.error,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              ),
+              onPressed: toggleBrightness,
+              child: const Text('Toggle light/dark mode'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-            updateTheme(newTheme);
-          },
-          child: const Text('Change Theme'),
+class CusContainer extends StatelessWidget {
+  const CusContainer({
+    super.key,
+    required this.text,
+    required this.color,
+    required this.textColor,
+  });
+  final String text;
+  final Color color;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        width: MediaQuery.of(context).size.width,
+        color: color,
+        child: Text(
+          text,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: textColor,
+              ),
         ),
       ),
     );
@@ -67,10 +126,17 @@ class HomeScreen extends StatelessWidget {
 }
 
 class ThemeProvider extends ChangeNotifier {
-  final themeManager = ThemeManager();
+  final ThemeManager themeManager;
 
-  void updateTheme({ThemeModel? newTheme}) {
+  ThemeProvider({required this.themeManager});
+
+  void updateTheme({required ThemeData newTheme}) {
     themeManager.updateTheme(newTheme: newTheme);
+    notifyListeners();
+  }
+
+  void toggleBrightness() {
+    themeManager.toggleBrightness();
     notifyListeners();
   }
 }
