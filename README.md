@@ -23,7 +23,7 @@ dependencies:
         ref: main
 ```
 
-## Example
+<!-- ## Example
 
 ```dart
 import 'dart:math';
@@ -103,7 +103,7 @@ class ThemeProvider extends ChangeNotifier {
   }
 }
 
-```
+``` -->
 
 ## Checklist
 
