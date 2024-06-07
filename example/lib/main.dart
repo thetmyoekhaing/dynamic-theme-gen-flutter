@@ -1,4 +1,5 @@
 import 'package:dynamic_theme_generator/dynamic_theme_generator.dart';
+import 'package:example/material_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -88,6 +89,24 @@ class HomeScreen extends StatelessWidget {
               onPressed: toggleBrightness,
               child: const Text('Toggle light/dark mode'),
             ),
+            const SizedBox(height: 10),
+            Flexible(
+              child: MaterialColorPicker(
+                pickerColor: colorScheme.primary,
+                onColorChanged: (value) {
+                  final theme = ThemeData(
+                    brightness: Brightness.light,
+                    colorScheme: ColorScheme.fromSeed(
+                      seedColor: value,
+                      brightness: Brightness.light,
+                    ),
+                    textTheme: textTheme,
+                  );
+                  updateTheme(theme);
+                  Navigator.pop(context);
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -126,13 +145,15 @@ class CusContainer extends StatelessWidget {
 }
 
 class ThemeProvider extends ChangeNotifier {
-  final ThemeManager themeManager;
+  ThemeManager themeManager;
 
   ThemeProvider({required this.themeManager});
 
   void updateTheme({required ThemeData newTheme}) {
     themeManager.updateTheme(newTheme: newTheme);
     notifyListeners();
+    debugPrint(
+        "--------------------- updated ${themeManager.currentTheme.colorScheme.primary} ${themeManager.currentTheme.colorScheme.brightness} ------------------");
   }
 
   void toggleBrightness() {

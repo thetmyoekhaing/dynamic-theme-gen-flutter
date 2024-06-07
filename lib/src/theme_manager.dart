@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 class ThemeManager {
   ThemeData _currentTheme;
+  ThemeData _lightMode;
+  ThemeData _darkMode;
   final CUSTOMTHEMES? _customtheme;
 
   ThemeManager({
@@ -17,33 +19,60 @@ class ThemeManager {
                       ? ColorScheme.fromSwatch()
                       : ColorScheme.fromSeed(seedColor: baseColor),
                 ),
-        _customtheme = customTheme;
+        _customtheme = customTheme,
+        _lightMode = customTheme != null
+            ? getLight(customTheme)
+            : ThemeData(
+                colorScheme: baseColor == null
+                    ? ColorScheme.fromSwatch()
+                    : ColorScheme.fromSeed(seedColor: baseColor),
+                brightness: Brightness.light),
+        _darkMode = customTheme != null
+            ? getDark(customTheme)
+            : ThemeData(
+                colorScheme: baseColor == null
+                    ? ColorScheme.fromSwatch()
+                    : ColorScheme.fromSeed(seedColor: baseColor),
+                brightness: Brightness.dark);
 
   ThemeData get currentTheme => _currentTheme;
   ThemeMode get themeMode => _currentTheme.brightness == Brightness.light
       ? ThemeMode.light
       : ThemeMode.dark;
 
-  ThemeData get lightMode => _customtheme != null
-      ? getLight(_customtheme)
-      : ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: _currentTheme.colorScheme.primary,
-            brightness: Brightness.light,
-          ),
-        );
+  ThemeData get lightMode => _lightMode;
 
-  ThemeData get darkMode => _customtheme != null
-      ? getDark(_customtheme)
-      : ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: _currentTheme.colorScheme.primary,
-            brightness: Brightness.dark,
-          ),
-        );
+  set setLightMode(ThemeData light) {
+    _lightMode = light;
+  }
+
+  set setDarkMode(ThemeData dark) {
+    _darkMode = dark;
+  }
+
+  ThemeData get darkMode => _darkMode;
 
   void updateTheme({required ThemeData newTheme}) {
-    _currentTheme = newTheme;
+    // _currentTheme = newTheme;
+    if (newTheme.colorScheme.brightness == Brightness.light) {
+      setLightMode = newTheme;
+      setDarkMode = ThemeData(
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          brightness: Brightness.dark,
+          seedColor: newTheme.colorScheme.primary,
+        ),
+      );
+    } else {
+      setDarkMode = newTheme;
+      setLightMode = ThemeData(
+        brightness: Brightness.light,
+        colorScheme: ColorScheme.fromSeed(
+          brightness: Brightness.light,
+          seedColor: newTheme.colorScheme.primary,
+        ),
+      );
+    }
   }
 
   void toggleBrightness() {
